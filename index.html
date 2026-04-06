@@ -1,243 +1,267 @@
 <!doctype html>
 <html lang="vi">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vendeng Vocabulary PRO</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vendeng Vocabulary PRO</title>
 
-<style>
-body {
-  font-family: -apple-system, sans-serif;
-  background: linear-gradient(135deg, #0f2027, #2c5364);
-  display: flex;
-  justify-content: center;
-  padding: 20px;
-  color: #fff;
-}
+    <style>
+      body {
+        font-family: -apple-system, sans-serif;
+        background: linear-gradient(135deg, #0f2027, #2c5364);
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        color: #fff;
+      }
 
-.app {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(20px);
-  padding: 20px;
-  width: 100%;
-  max-width: 1100px;
-  border-radius: 20px;
-}
+      .app {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        padding: 20px;
+        width: 100%;
+        max-width: 1100px;
+        border-radius: 20px;
+      }
 
-/* Tabs */
-.tabs {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  margin: 10px 0;
-}
+      /* Tabs */
+      .tabs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        margin: 10px 0;
+      }
 
-.tab {
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.1);
-  cursor: pointer;
-}
+      .tab {
+        padding: 8px 12px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        cursor: pointer;
+      }
 
-.tab.active {
-  background: linear-gradient(135deg,#4facfe,#00f2fe);
-}
+      .tab.active {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+      }
 
-/* Topic */
-.topic input {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.2);
-  border: none;
-  color: white;
-  margin-bottom: 10px;
-}
+      /* Topic */
+      .topic input {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        margin-bottom: 10px;
+      }
 
-/* Filter */
-select {
-  padding: 8px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
+      /* Filter */
+      select {
+        padding: 8px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+      }
 
-/* Input */
-.input-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr 2fr auto;
-  gap: 8px;
-  margin: 10px 0;
-}
+      /* Input */
+      .input-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr 2fr auto;
+        gap: 8px;
+        margin: 10px 0;
+      }
 
-input {
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(255,255,255,0.15);
-  color: white;
-}
+      input {
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+      }
 
-button {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-}
+      button {
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+      }
 
-.add-btn { background: #00c6ff; }
-.delete-btn { background: red; }
-.edit-btn { background: orange; }
+      .add-btn {
+        background: #00c6ff;
+      }
+      .delete-btn {
+        background: red;
+      }
+      .edit-btn {
+        background: orange;
+      }
 
-/* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+      /* Table */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
 
-th, td {
-  padding: 10px;
-  border-top: 1px solid rgba(255,255,255,0.1);
-  text-align: left;
-}
+      th,
+      td {
+        padding: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: left;
+      }
 
-td:first-child {
-  width: 50px;
-  text-align: center;
-}
+      td:first-child {
+        width: 50px;
+        text-align: center;
+      }
 
-th:last-child, td:last-child {
-  width: 140px;
-  text-align: center;
-}
+      th:last-child,
+      td:last-child {
+        width: 140px;
+        text-align: center;
+      }
 
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-}
-</style>
-</head>
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+      }
+    </style>
+  </head>
 
-<body>
+  <body>
+    <div class="app">
+      <h2>📘 Vendeng Vocabulary</h2>
 
-<div class="app">
+      <div class="topic">
+        <input id="topicInput" placeholder="Topic..." />
+      </div>
 
-<h2>📘 Vendeng Vocabulary</h2>
+      <div id="tabs" class="tabs"></div>
 
-<div class="topic">
-  <input id="topicInput" placeholder="Topic...">
-</div>
+      <select id="filter" onchange="renderList()">
+        <option value="">-- Bộ lọc --</option>
+        <option value="length">Số nét tăng dần</option>
+        <option value="date">Ngày mới nhất</option>
+      </select>
 
-<div id="tabs" class="tabs"></div>
+      <input type="file" id="excelFile" accept=".xlsx" />
+      <button onclick="importExcel()">Import Excel</button>
 
-<select id="filter" onchange="renderList()">
-  <option value="">-- Bộ lọc --</option>
-  <option value="length">Số nét tăng dần</option>
-  <option value="date">Ngày mới nhất</option>
-</select>
+      <div class="input-group">
+        <input id="word" placeholder="Từ vựng" />
+        <input id="phonetic" placeholder="Phiên âm" />
+        <input id="meaning" placeholder="Nghĩa" />
+        <button class="add-btn" onclick="addWord()">Thêm</button>
+      </div>
 
-<input type="file" id="excelFile" accept=".xlsx">
-<button onclick="importExcel()">Import Excel</button>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Từ</th>
+            <th>Phiên âm</th>
+            <th>Nghĩa</th>
+            <th>Ngày</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="list"></tbody>
+      </table>
+    </div>
 
-<div class="input-group">
-  <input id="word" placeholder="Từ vựng">
-  <input id="phonetic" placeholder="Phiên âm">
-  <input id="meaning" placeholder="Nghĩa">
-  <button class="add-btn" onclick="addWord()">Thêm</button>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-<table>
-<thead>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyB5T1uiQm0vuIs7v12-9pMbnASnYxe0Aho",
+        authDomain: "vendeng-fa5c1.firebaseapp.com",
+        projectId: "vendeng-fa5c1",
+        storageBucket: "vendeng-fa5c1.firebasestorage.app",
+        messagingSenderId: "487534407290",
+        appId: "1:487534407290:web:79633cdec25c6b51cf55c3",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      let currentPage = 1;
+      const totalPages = 20;
+
+      /* Tabs */
+      function renderTabs() {
+        const tabs = document.getElementById("tabs");
+        tabs.innerHTML = "";
+
+        for (let i = 1; i <= totalPages; i++) {
+          const tab = document.createElement("div");
+          tab.className = "tab " + (i === currentPage ? "active" : "");
+          tab.innerText = i;
+
+          tab.onclick = () => {
+            currentPage = i;
+            renderTabs();
+            loadAll();
+          };
+
+          tabs.appendChild(tab);
+        }
+      }
+
+      /* Topic */
+      async function saveTopic() {
+        const topic = topicInput.value;
+        await db
+          .collection("topic")
+          .doc("page_" + currentPage)
+          .set({ topic });
+      }
+
+      async function loadTopic() {
+        const doc = await db
+          .collection("topic")
+          .doc("page_" + currentPage)
+          .get();
+        topicInput.value = doc.exists ? doc.data().topic : "";
+      }
+
+      topicInput.addEventListener("input", saveTopic);
+
+      /* Data */
+      async function getData() {
+        const doc = await db
+          .collection("vendeng")
+          .doc("page_" + currentPage)
+          .get();
+        return doc.exists ? doc.data().items || [] : [];
+      }
+
+      async function saveData(data) {
+        await db
+          .collection("vendeng")
+          .doc("page_" + currentPage)
+          .set({ items: data });
+      }
+
+      /* Render */
+      async function renderList() {
+        let data = await getData();
+
+        const filter = document.getElementById("filter").value;
+
+        if (filter === "length") {
+          data.sort((a, b) => a.word.length - b.word.length);
+        }
+
+        if (filter === "date") {
+          data.sort((a, b) => (b.time || 0) - (a.time || 0));
+        }
+
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+
+        data.forEach((item, i) => {
+          list.innerHTML += `
 <tr>
-<th>#</th>
-<th>Từ</th>
-<th>Phiên âm</th>
-<th>Nghĩa</th>
-<th>Ngày</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="list"></tbody>
-</table>
-
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyB5T1uiQm0vuIs7v12-9pMbnASnYxe0Aho",
-  authDomain: "vendeng-fa5c1.firebaseapp.com",
-  projectId: "vendeng-fa5c1",
-  storageBucket: "vendeng-fa5c1.firebasestorage.app",
-  messagingSenderId: "487534407290",
-  appId: "1:487534407290:web:79633cdec25c6b51cf55c3",
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-let currentPage = 1;
-const totalPages = 20;
-
-/* Tabs */
-function renderTabs() {
-  const tabs = document.getElementById("tabs");
-  tabs.innerHTML = "";
-
-  for (let i = 1; i <= totalPages; i++) {
-    const tab = document.createElement("div");
-    tab.className = "tab " + (i === currentPage ? "active" : "");
-    tab.innerText = i;
-
-    tab.onclick = () => {
-      currentPage = i;
-      renderTabs();
-      loadAll();
-    };
-
-    tabs.appendChild(tab);
-  }
-}
-
-/* Topic */
-async function saveTopic() {
-  const topic = topicInput.value;
-  await db.collection("topic").doc("page_" + currentPage).set({ topic });
-}
-
-async function loadTopic() {
-  const doc = await db.collection("topic").doc("page_" + currentPage).get();
-  topicInput.value = doc.exists ? doc.data().topic : "";
-}
-
-topicInput.addEventListener("input", saveTopic);
-
-/* Data */
-async function getData() {
-  const doc = await db.collection("vendeng").doc("page_" + currentPage).get();
-  return doc.exists ? doc.data().items || [] : [];
-}
-
-async function saveData(data) {
-  await db.collection("vendeng").doc("page_" + currentPage).set({ items: data });
-}
-
-/* Render */
-async function renderList() {
-  let data = await getData();
-  const filter = filterSelect.value;
-
-  if (filter === "length") data.sort((a,b)=>a.word.length-b.word.length);
-  if (filter === "date") data.sort((a,b)=>b.time-a.time);
-
-  list.innerHTML = "";
-
-  data.forEach((item,i)=>{
-    list.innerHTML += `
-<tr>
-<td>${i+1}</td>
+<td>${i + 1}</td>
 <td>${item.word}</td>
 <td>${item.phonetic}</td>
 <td>${item.meaning}</td>
@@ -247,93 +271,99 @@ async function renderList() {
 <button class="delete-btn" onclick="deleteWord(${i})">Xóa</button>
 </td>
 </tr>`;
-  });
-}
-
-/* Add */
-async function addWord() {
-  const w = word.value.trim();
-  const p = phonetic.value.trim();
-  const m = meaning.value.trim();
-
-  if (!w || !m) return;
-
-  let data = await getData();
-  data.push({word:w,phonetic:p,meaning:m,time:Date.now()});
-
-  await saveData(data);
-  loadAll();
-
-  word.value = phonetic.value = meaning.value = "";
-}
-
-/* Delete */
-async function deleteWord(i) {
-  let data = await getData();
-  data.splice(i,1);
-  await saveData(data);
-  loadAll();
-}
-
-/* Edit */
-async function editWord(i) {
-  let data = await getData();
-
-  const w = prompt("Từ:", data[i].word);
-  const p = prompt("Phiên âm:", data[i].phonetic);
-  const m = prompt("Nghĩa:", data[i].meaning);
-
-  if (w && m) {
-    data[i] = {...data[i],word:w,phonetic:p,meaning:m};
-    await saveData(data);
-    loadAll();
-  }
-}
-
-/* Excel */
-function importExcel() {
-  const file = excelFile.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = async e => {
-    const data = new Uint8Array(e.target.result);
-    const wb = XLSX.read(data,{type:"array"});
-    const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1});
-
-    let current = await getData();
-
-    rows.forEach(r=>{
-      if(r.length>=3){
-        current.push({word:r[0],phonetic:r[1],meaning:r[2],time:Date.now()});
+        });
       }
-    });
 
-    await saveData(current);
-    loadAll();
-  };
+      /* Add */
+      async function addWord() {
+        const w = word.value.trim();
+        const p = phonetic.value.trim();
+        const m = meaning.value.trim();
 
-  reader.readAsArrayBuffer(file);
-}
+        if (!w || !m) return;
 
-/* Enter */
-document.querySelectorAll("#word,#phonetic,#meaning").forEach(el=>{
-  el.addEventListener("keydown",e=>{
-    if(e.key==="Enter") addWord();
-  });
-});
+        let data = await getData();
+        data.push({ word: w, phonetic: p, meaning: m, time: Date.now() });
 
-/* Load */
-function loadAll(){
-  renderList();
-  loadTopic();
-}
+        await saveData(data);
+        loadAll();
 
-/* Init */
-renderTabs();
-loadAll();
-</script>
+        word.value = phonetic.value = meaning.value = "";
+      }
 
-</body>
+      /* Delete */
+      async function deleteWord(i) {
+        let data = await getData();
+        data.splice(i, 1);
+        await saveData(data);
+        loadAll();
+      }
+
+      /* Edit */
+      async function editWord(i) {
+        let data = await getData();
+
+        const w = prompt("Từ:", data[i].word);
+        const p = prompt("Phiên âm:", data[i].phonetic);
+        const m = prompt("Nghĩa:", data[i].meaning);
+
+        if (w && m) {
+          data[i] = { ...data[i], word: w, phonetic: p, meaning: m };
+          await saveData(data);
+          loadAll();
+        }
+      }
+
+      /* Excel */
+      function importExcel() {
+        const file = excelFile.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+          const data = new Uint8Array(e.target.result);
+          const wb = XLSX.read(data, { type: "array" });
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {
+            header: 1,
+          });
+
+          let current = await getData();
+
+          rows.forEach((r) => {
+            if (r.length >= 3) {
+              current.push({
+                word: r[0],
+                phonetic: r[1],
+                meaning: r[2],
+                time: Date.now(),
+              });
+            }
+          });
+
+          await saveData(current);
+          loadAll();
+        };
+
+        reader.readAsArrayBuffer(file);
+      }
+
+      /* Enter */
+      document.querySelectorAll("#word,#phonetic,#meaning").forEach((el) => {
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") addWord();
+        });
+      });
+
+      /* Load */
+      function loadAll() {
+        renderList();
+        loadTopic();
+      }
+
+      /* Init */
+      renderTabs();
+      loadAll();
+    </script>
+  </body>
 </html>
