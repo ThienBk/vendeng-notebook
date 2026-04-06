@@ -1,463 +1,238 @@
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vocabulary Notebook PRO</title>
-
-    <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: linear-gradient(135deg, #0f2027, #2c5364);
-        display: flex;
-        justify-content: center;
-        padding: 20px;
-        color: #fff;
-      }
-
-      .app {
-        backdrop-filter: blur(20px);
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 20px;
-        width: 100%;
-        max-width: 1100px;
-        border-radius: 20px;
-      }
-
-      /* Header */
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .topic input {
-        padding: 4px 10px;
-        border-radius: 999px;
-        border: none;
-        background: rgba(255, 255, 255, 0.15);
-        color: white;
-        width: 140px;
-      }
-
-      /* Tabs */
-      .tabs {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 8px;
-        margin: 12px 0;
-      }
-
-      .tabs::-webkit-scrollbar {
-        height: 8px;
-      }
-
-      .tabs::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-      }
-
-      .tab {
-        flex: 0 0 auto;
-        min-width: 36px;
-        height: 36px;
-        padding: 0 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.08);
-        cursor: pointer;
-      }
-
-      .tab.active {
-        background: linear-gradient(135deg, #4facfe, #00f2fe);
-      }
-
-      /* Input */
-      .input-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr 2fr auto;
-        gap: 8px;
-        margin: 10px 0;
-      }
-
-      input {
-        padding: 10px;
-        border-radius: 10px;
-        border: none;
-        background: rgba(255, 255, 255, 0.15);
-        color: white;
-      }
-
-      button {
-        border-radius: 10px;
-        border: none;
-        padding: 8px 12px;
-        cursor: pointer;
-      }
-
-      .add-btn {
-        background: linear-gradient(135deg, #00f260, #0575e6);
-      }
-
-      .import-btn {
-        background: purple;
-      }
-
-      /* Table */
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th,
-      td {
-        padding: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        text-align: left;
-        vertical-align: middle;
-      }
-
-      .actions {
-        display: flex;
-        justify-content: center;
-        gap: 6px;
-      }
-
-      .edit-btn {
-        background: orange;
-      }
-      .delete-btn {
-        background: red;
-      }
-
-      .footer {
-        text-align: right;
-        margin-top: 10px;
-      }
-
-      td:first-child {
-        width: 50px;
-        text-align: center;
-      }
-      td:nth-child(2) {
-        font-weight: 600;
-      }
-
-      th:last-child,
-      td:last-child {
-        width: 120px;
-        text-align: center;
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="app">
-      <div class="header">
-        <h2>📘 Vocabulary Notebook</h2>
-        <div class="topic">
-          <input id="topicInput" placeholder="Topic..." />
-        </div>
-      </div>
-
-      <div class="tabs" id="tabs"></div>
-
-      <div class="filter">
-        <select id="filter" onchange="renderList()">
-          <option value="">-- Bộ lọc --</option>
-          <option value="length">Số nét tăng dần</option>
-          <option value="date">Ngày mới nhất</option>
-        </select>
-
-        <input type="file" id="excelFile" accept=".xlsx,.csv" />
-        <button class="import-btn" onclick="importExcel()">Import</button>
-      </div>
-
-      <div class="input-group">
-        <input id="word" placeholder="Từ vựng" />
-        <input id="phonetic" placeholder="Phiên âm" />
-        <input id="meaning" placeholder="Nghĩa" />
-        <button class="add-btn" onclick="addWord()">Thêm</button>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Từ</th>
-            <th>Phiên âm</th>
-            <th>Nghĩa</th>
-            <th>Ngày</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="list"></tbody>
-      </table>
-
-      <div class="footer">
-        <button onclick="resetPage()">Xóa trang</button>
-      </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-    <script>
-      const APP_ID = "app2";
-      let currentPage = 1;
-      const totalPages = 20;
-      const app = firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
-
-      function renderTabs() {
-        const tabs = document.getElementById("tabs");
-        tabs.innerHTML = "";
-
-        for (let i = 1; i <= totalPages; i++) {
-          const tab = document.createElement("div");
-          tab.className = "tab " + (i === currentPage ? "active" : "");
-          tab.innerText = i;
-
-          tab.onclick = () => {
-            currentPage = i;
-            renderTabs();
-            loadTopic();
-            renderList();
-          };
-
-          tabs.appendChild(tab);
-        }
-      }
-
-      function getTopicKey() {
-        return APP_ID + "_topic_" + currentPage;
-      }
-
-      function loadTopic() {
-        document.getElementById("topicInput").value = function saveDataToCloud(
-          data,
-        ) {
-          db.collection("vocab")
-            .doc("page_" + currentPage)
-            .set({
-              items: data,
-            });
-        };
-      }
-
-      document
-        .getElementById("topicInput")
-        .addEventListener("input", function () {
-          function saveDataToCloud(data) {
-            db.collection("vendeng")
-              .doc("page_" + currentPage)
-              .set({
-                items: data,
-              });
-          }
-        });
-
-      function getKey() {
-        return APP_ID + "_vocab_page_" + currentPage;
-      }
-
-      function getData() {
-        return (
-          JSON.parse(function saveDataToCloud(data) {
-            db.collection("vocab")
-              .doc("page_" + currentPage)
-              .set({
-                items: data,
-              });
-          }) || []
-        );
-      }
-
-      function saveData(data) {
-        localStorage.setItem(getKey(), JSON.stringify(data));
-      }
-      function saveDataToCloud(data) {
-        db.collection("vocab")
-          .doc("page_" + currentPage)
-          .set({
-            items: data,
-          });
-      }
-      async function loadDataFromCloud() {
-        const doc = await db
-          .collection("vocab")
-          .doc("page_" + currentPage)
-          .get();
-
-        if (doc.exists) {
-          return doc.data().items || [];
-        }
-        return [];
-      }
-      async function renderList() {
-        let data = await loadDataFromCloud();
-
-        const list = document.getElementById("list");
-        list.innerHTML = "";
-
-        data.forEach((item, index) => {
-          list.innerHTML += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${item.word}</td>
-        <td>${item.phonetic}</td>
-        <td>${item.meaning}</td>
-        <td>${new Date(item.time).toLocaleDateString()}</td>
-      </tr>
-    `;
-        });
-      }
-      async function renderList() {
-        let data = await loadDataFromCloud();
-
-        const list = document.getElementById("list");
-        list.innerHTML = "";
-
-        data.forEach((item, index) => {
-          list.innerHTML += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${item.word}</td>
-        <td>${item.phonetic}</td>
-        <td>${item.meaning}</td>
-        <td>${new Date(item.time).toLocaleDateString()}</td>
-      </tr>
-    `;
-        });
-      }
-
-      function renderList() {
-        let data = getData();
-        const filter = document.getElementById("filter").value;
-
-        if (filter === "length")
-          data.sort((a, b) => a.word.length - b.word.length);
-        if (filter === "date") data.sort((a, b) => b.time - a.time);
-
-        const list = document.getElementById("list");
-        list.innerHTML = "";
-
-        data.forEach((item, index) => {
-          list.innerHTML += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${item.word}</td>
-        <td>${item.phonetic}</td>
-        <td>${item.meaning}</td>
-        <td>${item.time ? new Date(item.time).toLocaleDateString() : ""}</td>
-        <td class="actions">
-          <button class="edit-btn" onclick="editWord(${index})">Sửa</button>
-          <button class="delete-btn" onclick="deleteWord(${index})">Xóa</button>
-        </td>
-      </tr>
-    `;
-        });
-      }
-
-      function addWord() {
-        const word = document.getElementById("word");
-        const phonetic = document.getElementById("phonetic");
-        const meaning = document.getElementById("meaning");
-
-        if (!word.value.trim() || !meaning.value.trim()) return;
-
-        const data = getData();
-        data.push({
-          word: word.value.trim(),
-          phonetic: phonetic.value.trim(),
-          meaning: meaning.value.trim(),
-          time: Date.now(),
-        });
-
-        saveData(data);
-        renderList();
-
-        word.value = phonetic.value = meaning.value = "";
-        word.focus();
-      }
-
-      document.querySelectorAll("#word,#phonetic,#meaning").forEach((el) => {
-        el.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            addWord();
-          }
-        });
-      });
-
-      function importExcel() {
-        const file = document.getElementById("excelFile").files[0];
-        if (!file) return alert("Chọn file!");
-
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const data = new Uint8Array(e.target.result);
-
-          const workbook = XLSX.read(data, { type: "array" });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-          const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-          let currentData = getData();
-
-          json.forEach((row) => {
-            if (row.length >= 3) {
-              currentData.push({
-                word: row[0],
-                phonetic: row[1],
-                meaning: row[2],
-                time: Date.now(),
-              });
-            }
-          });
-
-          saveData(currentData);
-          renderList();
-        };
-
-        reader.readAsArrayBuffer(file);
-      }
-
-      function deleteWord(i) {
-        const data = getData();
-        data.splice(i, 1);
-        saveData(data);
-        renderList();
-      }
-
-      function editWord(i) {
-        const data = getData();
-        const w = prompt("Từ:", data[i].word);
-        const p = prompt("Phiên âm:", data[i].phonetic);
-        const m = prompt("Nghĩa:", data[i].meaning);
-
-        if (w && m) {
-          data[i] = { ...data[i], word: w, phonetic: p, meaning: m };
-          saveData(data);
-          renderList();
-        }
-      }
-
-      function resetPage() {
-        if (confirm("Xóa hết?")) {
-          localStorage.removeItem(getKey());
-          renderList();
-        }
-      }
-
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Vendeng Vocabulary</title>
+
+<style>
+body {
+  font-family: -apple-system, sans-serif;
+  background: linear-gradient(135deg, #0f2027, #2c5364);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.app {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  padding: 20px;
+  width: 100%;
+  max-width: 1000px;
+  border-radius: 20px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+
+.tab {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  cursor: pointer;
+}
+
+.tab.active {
+  background: linear-gradient(135deg,#4facfe,#00f2fe);
+}
+
+.input-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr auto;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+input {
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: white;
+}
+
+button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+.add-btn { background: #00c6ff; }
+.delete-btn { background: red; }
+
+table {
+  width: 100%;
+}
+
+td, th {
+  padding: 10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<h2>📘 Vendeng Vocabulary</h2>
+
+<div id="tabs" class="tabs"></div>
+
+<div class="input-group">
+  <input id="word" placeholder="Từ vựng">
+  <input id="phonetic" placeholder="Phiên âm">
+  <input id="meaning" placeholder="Nghĩa">
+  <button class="add-btn" onclick="addWord()">Thêm</button>
+</div>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Từ</th>
+<th>Phiên âm</th>
+<th>Nghĩa</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+</div>
+
+<!-- Firebase v8 (ổn định nhất) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+// 🔥 DÁN CONFIG FIREBASE CỦA BẠN VÀO ĐÂY
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "vendeng.firebaseapp.com",
+  projectId: "vendeng",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentPage = 1;
+const totalPages = 20;
+
+/* Tabs */
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = "";
+
+  for (let i = 1; i <= totalPages; i++) {
+    const tab = document.createElement("div");
+    tab.className = "tab " + (i === currentPage ? "active" : "");
+    tab.innerText = i;
+
+    tab.onclick = () => {
+      currentPage = i;
       renderTabs();
-      loadTopic();
-      renderList();
-    </script>
-  </body>
+      loadData();
+    };
+
+    tabs.appendChild(tab);
+  }
+}
+
+/* Load */
+async function loadData() {
+  const doc = await db.collection("vendeng")
+    .doc("page_" + currentPage)
+    .get();
+
+  const data = doc.exists ? doc.data().items : [];
+  renderList(data || []);
+}
+
+/* Save */
+async function saveData(data) {
+  await db.collection("vendeng")
+    .doc("page_" + currentPage)
+    .set({ items: data });
+}
+
+/* Render */
+function renderList(data) {
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+
+  data.forEach((item, i) => {
+    list.innerHTML += `
+    <tr>
+      <td>${i+1}</td>
+      <td>${item.word}</td>
+      <td>${item.phonetic}</td>
+      <td>${item.meaning}</td>
+      <td>
+        <button class="delete-btn" onclick="deleteWord(${i})">Xóa</button>
+      </td>
+    </tr>`;
+  });
+}
+
+/* Add */
+async function addWord() {
+  const word = document.getElementById("word").value.trim();
+  const phonetic = document.getElementById("phonetic").value.trim();
+  const meaning = document.getElementById("meaning").value.trim();
+
+  if (!word || !meaning) return;
+
+  const doc = await db.collection("vendeng")
+    .doc("page_" + currentPage)
+    .get();
+
+  let data = doc.exists ? doc.data().items : [];
+
+  data.push({ word, phonetic, meaning });
+
+  await saveData(data);
+  loadData();
+
+  document.getElementById("word").value = "";
+  document.getElementById("phonetic").value = "";
+  document.getElementById("meaning").value = "";
+}
+
+/* Delete */
+async function deleteWord(i) {
+  const doc = await db.collection("vendeng")
+    .doc("page_" + currentPage)
+    .get();
+
+  let data = doc.data().items;
+  data.splice(i,1);
+
+  await saveData(data);
+  loadData();
+}
+
+/* Enter */
+document.querySelectorAll("#word,#phonetic,#meaning").forEach(el=>{
+  el.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){
+      addWord();
+    }
+  });
+});
+
+/* Init */
+renderTabs();
+loadData();
+
+</script>
+
+</body>
 </html>
