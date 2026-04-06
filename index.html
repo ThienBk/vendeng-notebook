@@ -245,7 +245,9 @@
       async function renderList() {
         let data = await getData();
 
-        const filter = document.getElementById("filter").value;
+        // 🔥 FIX LỖI Ở ĐÂY
+        const filterEl = document.getElementById("filter");
+        const filter = filterEl ? filterEl.value : "";
 
         if (filter === "length") {
           data.sort((a, b) => a.word.length - b.word.length);
