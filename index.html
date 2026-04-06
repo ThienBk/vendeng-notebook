@@ -122,6 +122,56 @@
         justify-content: center;
         gap: 6px;
       }
+      /* ===== MOBILE RESPONSIVE ===== */
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .app {
+          padding: 12px;
+        }
+
+        /* Tabs scroll mượt */
+        .tabs {
+          overflow-x: auto;
+        }
+
+        /* Input xuống dòng */
+        .input-group {
+          grid-template-columns: 1fr;
+        }
+
+        /* Button full width */
+        .add-btn {
+          width: 100%;
+        }
+
+        /* Table scroll ngang */
+        table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+
+        /* Giảm padding */
+        th,
+        td {
+          padding: 8px;
+          font-size: 13px;
+        }
+
+        /* Nút gọn lại */
+        .actions button {
+          padding: 6px 8px;
+          font-size: 12px;
+        }
+
+        /* Topic nhỏ lại */
+        .topic input {
+          width: 100%;
+        }
+      }
     </style>
   </head>
 
