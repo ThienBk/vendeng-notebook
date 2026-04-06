@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <title>Vocabulary Notebook PRO</title>
 
     <style>
@@ -204,11 +203,15 @@
         <button onclick="resetPage()">Xóa trang</button>
       </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
     <script>
-        const APP_ID = "app2"
+      const APP_ID = "app2";
       let currentPage = 1;
       const totalPages = 20;
+      const app = firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
 
       function renderTabs() {
         const tabs = document.getElementById("tabs");
@@ -235,14 +238,27 @@
       }
 
       function loadTopic() {
-        document.getElementById("topicInput").value =
-          localStorage.getItem(getTopicKey()) || "";
+        document.getElementById("topicInput").value = function saveDataToCloud(
+          data,
+        ) {
+          db.collection("vocab")
+            .doc("page_" + currentPage)
+            .set({
+              items: data,
+            });
+        };
       }
 
       document
         .getElementById("topicInput")
         .addEventListener("input", function () {
-          localStorage.setItem(getTopicKey(), this.value);
+          function saveDataToCloud(data) {
+            db.collection("vendeng")
+              .doc("page_" + currentPage)
+              .set({
+                items: data,
+              });
+          }
         });
 
       function getKey() {
@@ -250,11 +266,73 @@
       }
 
       function getData() {
-        return JSON.parse(localStorage.getItem(getKey())) || [];
+        return (
+          JSON.parse(function saveDataToCloud(data) {
+            db.collection("vocab")
+              .doc("page_" + currentPage)
+              .set({
+                items: data,
+              });
+          }) || []
+        );
       }
 
       function saveData(data) {
         localStorage.setItem(getKey(), JSON.stringify(data));
+      }
+      function saveDataToCloud(data) {
+        db.collection("vocab")
+          .doc("page_" + currentPage)
+          .set({
+            items: data,
+          });
+      }
+      async function loadDataFromCloud() {
+        const doc = await db
+          .collection("vocab")
+          .doc("page_" + currentPage)
+          .get();
+
+        if (doc.exists) {
+          return doc.data().items || [];
+        }
+        return [];
+      }
+      async function renderList() {
+        let data = await loadDataFromCloud();
+
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+
+        data.forEach((item, index) => {
+          list.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${item.word}</td>
+        <td>${item.phonetic}</td>
+        <td>${item.meaning}</td>
+        <td>${new Date(item.time).toLocaleDateString()}</td>
+      </tr>
+    `;
+        });
+      }
+      async function renderList() {
+        let data = await loadDataFromCloud();
+
+        const list = document.getElementById("list");
+        list.innerHTML = "";
+
+        data.forEach((item, index) => {
+          list.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${item.word}</td>
+        <td>${item.phonetic}</td>
+        <td>${item.meaning}</td>
+        <td>${new Date(item.time).toLocaleDateString()}</td>
+      </tr>
+    `;
+        });
       }
 
       function renderList() {
