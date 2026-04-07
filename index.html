@@ -219,7 +219,7 @@
         await db.collection("vendeng").doc("page_" + currentPage).set({ items: data });
       }
 
-      /* ====================== RENDER (SỬA LỖI SORT + INDEX) ====================== */
+      /* ====================== RENDER ====================== */
       async function renderList() {
         let originalData = await getData();
         let displayData = [...originalData];
@@ -232,7 +232,6 @@
           displayData.sort((a, b) => (b.time || 0) - (a.time || 0));
         }
 
-        // Tính original index cho từng item hiển thị
         const originalIndices = displayData.map(item => originalData.indexOf(item));
 
         const list = document.getElementById("list");
@@ -275,7 +274,6 @@
         await saveData(data);
         loadAll();
 
-        // Clear input
         document.getElementById("word").value = "";
         document.getElementById("phonetic").value = "";
         document.getElementById("meaning").value = "";
@@ -314,34 +312,52 @@
         }
       }
 
-      /* ====================== IMPORT EXCEL ====================== */
+      /* ====================== IMPORT EXCEL (ĐÃ SỬA) ====================== */
       function importExcel() {
         const file = document.getElementById("excelFile").files[0];
-        if (!file) return;
+        if (!file) {
+          alert("Vui lòng chọn file Excel!");
+          return;
+        }
 
         const reader = new FileReader();
         reader.onload = async (e) => {
-          const dataArray = new Uint8Array(e.target.result);
-          const wb = XLSX.read(dataArray, { type: "array" });
-          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+          try {
+            const dataArray = new Uint8Array(e.target.result);
+            const wb = XLSX.read(dataArray, { type: "array" });
+            const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
 
-          let current = await getData();
+            let current = await getData();
+            let addedCount = 0;
 
-          rows.forEach((r) => {
-            if (r.length >= 3 && r[0] && r[2]) {
-              current.push({
-                id: Date.now() + "_" + Math.random().toString(36).substr(2, 9),
-                word: String(r[0]).trim(),
-                phonetic: String(r[1] || "").trim(),
-                meaning: String(r[2]).trim(),
-                time: Date.now()
-              });
+            rows.forEach((r) => {
+              // Bỏ qua dòng trống hoặc tiêu đề
+              if (r.length >= 3 && String(r[0]).trim() && String(r[2]).trim()) {
+                current.push({
+                  id: Date.now() + "_" + Math.random().toString(36).substr(2, 9),
+                  word: String(r[0]).trim(),
+                  phonetic: String(r[1] || "").trim(),
+                  meaning: String(r[2]).trim(),
+                  time: Date.now()
+                });
+                addedCount++;
+              }
+            });
+
+            if (addedCount === 0) {
+              alert("Không tìm thấy dữ liệu hợp lệ trong file Excel!");
+              return;
             }
-          });
 
-          await saveData(current);
-          loadAll();
+            await saveData(current);
+            loadAll();
+            alert(`Đã import thành công ${addedCount} từ vựng!`);
+          } catch (error) {
+            console.error(error);
+            alert("Import thất bại! Vui lòng kiểm tra định dạng file Excel.");
+          }
         };
+
         reader.readAsArrayBuffer(file);
       }
 
@@ -352,7 +368,7 @@
         });
       });
 
-      /* ====================== LOAD ALL ====================== */
+      /* ====================== LOAD ====================== */
       function loadAll() {
         renderList();
         loadTopic();
