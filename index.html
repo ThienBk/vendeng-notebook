@@ -319,8 +319,8 @@
 <td>${item.meaning}</td>
 <td>${item.time ? new Date(item.time).toLocaleDateString() : ""}</td>
 <td class="actions">
-<button class="edit-btn" onclick="editWord(${i})">Sửa</button>
-<button class="delete-btn" onclick="deleteWord(${i})">Xóa</button>
+<button class="edit-btn" onclick="editWord('${item.id}')">Sửa</button>
+<button class="delete-btn" onclick="deleteWord('${item.id}')">Xóa</button>
 </td>
 </tr>`;
         });
@@ -335,7 +335,13 @@
         if (!w || !m) return;
 
         let data = await getData();
-        data.push({ word: w, phonetic: p, meaning: m, time: Date.now() });
+        data.push({
+          id: Date.now() + "_" + Math.random().toString(36).substr(2, 9), // id duy nhất
+          word: w,
+          phonetic: p,
+          meaning: m,
+          time: Date.now(),
+        });
 
         await saveData(data);
         loadAll();
@@ -343,24 +349,50 @@
         word.value = phonetic.value = meaning.value = "";
       }
 
+      // ==================== THÊM HÀM SORT CHUNG (để tránh lặp code) ====================
+      function applySort(data, filterValue) {
+        if (filterValue === "length") {
+          data.sort((a, b) => (a.word || "").length - (b.word || "").length);
+        } else if (filterValue === "date") {
+          data.sort((a, b) => (b.time || 0) - (a.time || 0));
+        }
+        // filterValue === "" → giữ nguyên thứ tự gốc
+      }
+
       /* Delete */
-      async function deleteWord(i) {
+      // ==================== SỬA HÀM DELETE ====================
+      async function deleteWord(displayIndex) {
+        const filterValue = document.getElementById("filter").value;
         let data = await getData();
-        data.splice(i, 1);
+
+        applySort(data, filterValue); // ← sắp xếp giống như renderList
+        data.splice(displayIndex, 1); // xóa đúng vị trí đang hiển thị
+
         await saveData(data);
-        loadAll();
+        loadAll(); // render lại
       }
 
       /* Edit */
-      async function editWord(i) {
+      // ==================== SỬA HÀM EDIT ====================
+      async function editWord(displayIndex) {
+        const filterValue = document.getElementById("filter").value;
         let data = await getData();
 
-        const w = prompt("Từ:", data[i].word);
-        const p = prompt("Phiên âm:", data[i].phonetic);
-        const m = prompt("Nghĩa:", data[i].meaning);
+        applySort(data, filterValue); // ← sắp xếp giống như renderList
+
+        const item = data[displayIndex];
+
+        const w = prompt("Từ:", item.word || "");
+        const p = prompt("Phiên âm:", item.phonetic || "");
+        const m = prompt("Nghĩa:", item.meaning || "");
 
         if (w && m) {
-          data[i] = { ...data[i], word: w, phonetic: p, meaning: m };
+          data[displayIndex] = {
+            ...item,
+            word: w.trim(),
+            phonetic: p.trim(),
+            meaning: m.trim(),
+          };
           await saveData(data);
           loadAll();
         }
@@ -384,10 +416,11 @@
 
           rows.forEach((r) => {
             if (r.length >= 3) {
-              current.push({
-                word: r[0],
-                phonetic: r[1],
-                meaning: r[2],
+              data.push({
+                id: Date.now() + "_" + Math.random().toString(36).substr(2, 9), // id duy nhất
+                word: w,
+                phonetic: p,
+                meaning: m,
                 time: Date.now(),
               });
             }
