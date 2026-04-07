@@ -62,11 +62,25 @@
         width: 100%;
       }
 
+      /* ====================== INPUT GROUP - ĐẸP CẢ PC VÀ MOBILE ====================== */
       .input-group {
         display: grid;
-        grid-template-columns: 1fr;
         gap: 10px;
         margin: 15px 0;
+      }
+
+      /* Mặc định trên máy tính: gọn gàng như cũ */
+      @media (min-width: 769px) {
+        .input-group {
+          grid-template-columns: 1fr 1fr 2fr auto;
+        }
+      }
+
+      /* Trên mobile: xuống dòng */
+      @media (max-width: 768px) {
+        .input-group {
+          grid-template-columns: 1fr;
+        }
       }
 
       input {
@@ -75,7 +89,7 @@
         border: none;
         background: rgba(255, 255, 255, 0.15);
         color: white;
-        font-size: 16px; /* Ngăn zoom trên iOS */
+        font-size: 16px;
       }
 
       button {
@@ -84,9 +98,13 @@
         border: none;
         cursor: pointer;
         font-size: 16px;
+        white-space: nowrap;
       }
 
-      .add-btn { background: #00c6ff; }
+      .add-btn { 
+        background: #00c6ff; 
+        font-weight: 600;
+      }
 
       table {
         width: 100%;
@@ -181,10 +199,6 @@
         .app { padding: 12px; }
         th, td { padding: 10px 6px; font-size: 14px; }
         .actions button { padding: 6px 10px; font-size: 13px; }
-        .popup-content { padding: 25px 20px; }
-        .popup-word { font-size: 2.1rem; }
-        .popup-phonetic { font-size: 1.3rem; }
-        .popup-meaning { font-size: 1.25rem; }
       }
     </style>
   </head>
@@ -245,6 +259,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
+      // ... (phần script giữ nguyên như bản trước, không thay đổi)
+
       const firebaseConfig = {
         apiKey: "AIzaSyB5T1uiQm0vuIs7v12-9pMbnASnYxe0Aho",
         authDomain: "vendeng-fa5c1.firebaseapp.com",
@@ -260,7 +276,6 @@
       let currentPage = 1;
       const totalPages = 20;
 
-      /* ====================== TABS ====================== */
       function renderTabs() {
         const tabs = document.getElementById("tabs");
         tabs.innerHTML = "";
@@ -277,7 +292,6 @@
         }
       }
 
-      /* ====================== TOPIC ====================== */
       const topicInput = document.getElementById("topicInput");
 
       async function saveTopic() {
@@ -292,7 +306,6 @@
 
       topicInput.addEventListener("input", saveTopic);
 
-      /* ====================== DATA ====================== */
       async function getData() {
         const doc = await db.collection("vendeng").doc("page_" + currentPage).get();
         return doc.exists ? doc.data().items || [] : [];
@@ -302,7 +315,6 @@
         await db.collection("vendeng").doc("page_" + currentPage).set({ items: data });
       }
 
-      /* ====================== RENDER ====================== */
       async function renderList() {
         let originalData = await getData();
         let displayData = [...originalData];
@@ -338,7 +350,6 @@
         });
       }
 
-      /* ====================== POPUP ====================== */
       function showPopup(originalIndex) {
         getData().then(data => {
           if (originalIndex < 0 || originalIndex >= data.length) return;
@@ -356,7 +367,6 @@
         document.getElementById("popup").style.display = "none";
       }
 
-      /* ====================== ADD ====================== */
       async function addWord() {
         const w = document.getElementById("word").value.trim();
         const p = document.getElementById("phonetic").value.trim();
@@ -381,11 +391,9 @@
         document.getElementById("meaning").value = "";
       }
 
-      /* ====================== DELETE ====================== */
       async function deleteWord(originalIndex) {
         let data = await getData();
         if (originalIndex < 0 || originalIndex >= data.length) return;
-
         if (confirm("Bạn có chắc muốn xóa từ này?")) {
           data.splice(originalIndex, 1);
           await saveData(data);
@@ -393,7 +401,6 @@
         }
       }
 
-      /* ====================== EDIT ====================== */
       async function editWord(originalIndex) {
         let data = await getData();
         if (originalIndex < 0 || originalIndex >= data.length) return;
@@ -416,7 +423,6 @@
         }
       }
 
-      /* ====================== IMPORT EXCEL ====================== */
       function importExcel() {
         const file = document.getElementById("excelFile").files[0];
         if (!file) {
@@ -462,24 +468,20 @@
         reader.readAsArrayBuffer(file);
       }
 
-      /* ====================== ENTER KEY ====================== */
       document.querySelectorAll("#word,#phonetic,#meaning").forEach(el => {
         el.addEventListener("keydown", (e) => {
           if (e.key === "Enter") addWord();
         });
       });
 
-      /* ====================== LOAD ====================== */
       function loadAll() {
         renderList();
         loadTopic();
       }
 
-      /* ====================== INIT ====================== */
       renderTabs();
       loadAll();
 
-      // Đóng popup khi click ngoài
       document.getElementById("popup").addEventListener("click", function(e) {
         if (e.target === this) closePopup();
       });
